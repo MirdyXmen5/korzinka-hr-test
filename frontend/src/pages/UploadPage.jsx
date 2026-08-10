@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'framer-motion';
-import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, Trash2, RefreshCw } from 'lucide-react';
 import api from '../api/axios';
 
 const UploadPage = () => {
@@ -10,8 +10,27 @@ const UploadPage = () => {
   const [language, setLanguage] = useState('ru');
   const [importAllSheets, setImportAllSheets] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [testsLoading, setTestsLoading] = useState(true);
+  const [deletingTestId, setDeletingTestId] = useState(null);
+  const [tests, setTests] = useState([]);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
+
+  const fetchTests = useCallback(async () => {
+    setTestsLoading(true);
+    try {
+      const res = await api.get('/tests/');
+      setTests(res.data);
+    } catch (err) {
+      setError('Не удалось загрузить список тестов');
+    } finally {
+      setTestsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTests();
+  }, [fetchTests]);
 
   const onDrop = useCallback(acceptedFiles => {
     if (acceptedFiles?.length > 0) {
@@ -58,10 +77,30 @@ const UploadPage = () => {
       setSuccess(`Успешно импортировано тестов: ${res.data.length}`);
       setFile(null);
       setTestName('');
+      setTests(currentTests => [...res.data, ...currentTests]);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка при загрузке файла');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTest = async (test) => {
+    const confirmed = window.confirm(`Удалить тест "${test.name}"? Все вопросы и результаты этого теста тоже будут удалены.`);
+    if (!confirmed) return;
+
+    setDeletingTestId(test.id);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await api.delete(`/tests/${test.id}/`);
+      setTests(currentTests => currentTests.filter(item => item.id !== test.id));
+      setSuccess(`Тест "${test.name}" удален`);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Не удалось удалить тест');
+    } finally {
+      setDeletingTestId(null);
     }
   };
 
@@ -76,7 +115,7 @@ const UploadPage = () => {
         <p className="text-lg text-gray-700 dark:text-gray-300">Загрузите файл Excel (.xlsx) с вопросами для тестирования.</p>
       </div>
 
-      <div className="glass-card p-8">
+      <div className="glass-card p-8 mb-8">
         <form onSubmit={handleUpload} className="space-y-6">
           
           <div 
@@ -186,6 +225,70 @@ const UploadPage = () => {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="glass-card overflow-hidden">
+        <div className="flex flex-col gap-4 border-b border-gray-200 p-6 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Загруженные тесты</h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Удалите тесты, которые больше не нужны.</p>
+          </div>
+          <button
+            type="button"
+            onClick={fetchTests}
+            disabled={testsLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
+          >
+            <RefreshCw size={16} className={testsLoading ? 'animate-spin' : ''} />
+            Обновить
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50 text-sm font-medium text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                <th className="p-4">Название</th>
+                <th className="p-4">Язык</th>
+                <th className="p-4 text-center">Вопросы</th>
+                <th className="p-4 text-right">Действия</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+              {testsLoading ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-gray-600 dark:text-gray-400">Загрузка тестов...</td>
+                </tr>
+              ) : tests.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-10 text-center text-gray-600 dark:text-gray-400">Пока нет загруженных тестов</td>
+                </tr>
+              ) : (
+                tests.map(test => (
+                  <tr key={test.id} className="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+                    <td className="p-4">
+                      <div className="font-medium text-gray-900 dark:text-white">{test.name}</div>
+                    </td>
+                    <td className="p-4 text-gray-700 dark:text-gray-300">{test.language_display}</td>
+                    <td className="p-4 text-center text-gray-700 dark:text-gray-300">{test.question_count}</td>
+                    <td className="p-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTest(test)}
+                        disabled={deletingTestId === test.id}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-500 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-400"
+                        title="Удалить тест"
+                      >
+                        {deletingTestId === test.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        Удалить
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </motion.div>
   );

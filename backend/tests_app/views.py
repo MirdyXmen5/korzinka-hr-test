@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, generics, filters
+from rest_framework import viewsets, status, generics, filters, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -8,7 +8,7 @@ from .models import Test, Question, TestResult, Answer
 from .serializers import *
 from .utils import parse_excel
 
-class TestViewSet(viewsets.ReadOnlyModelViewSet):
+class TestViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Test.objects.all()
     serializer_class = TestListSerializer
     

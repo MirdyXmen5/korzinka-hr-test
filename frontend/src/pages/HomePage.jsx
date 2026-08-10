@@ -97,14 +97,14 @@ const HomePage = () => {
         <div className="flex items-center gap-3 glass-card px-6 py-4">
           <FileText className="text-accent-500" />
           <div>
-            <div className="text-2xl font-bold">{stats.tests}</div>
+            <div className="text-2xl font-bold ">{stats.tests}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Доступных тестов</div>
           </div>
         </div>
         <div className="flex items-center gap-3 glass-card px-6 py-4">
           <Users className="text-accent-500" />
           <div>
-            <div className="text-2xl font-bold">{stats.results}</div>
+            <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">{stats.results}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Пройденных тестов</div>
           </div>
         </div>
