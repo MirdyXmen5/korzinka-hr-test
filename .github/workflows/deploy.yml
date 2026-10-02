@@ -47,7 +47,7 @@ jobs:
 
   deploy:
       name: Deploy to VPS
-      needs: [backend, frontend] # Ждем успешного завершения обеих проверок
+      needs: [backend-lint, frontend-lint] # Ждем успешного завершения обеих проверок
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       runs-on: ubuntu-latest
       steps:
