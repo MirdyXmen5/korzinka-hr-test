@@ -40,10 +40,10 @@ jobs:
       - name: Run ESLint
         working-directory: frontend
         run: >-
-        npx --yes eslint@8.57.1 src --no-eslintrc
-        --env browser,es2022
-        --parser-options '{"ecmaVersion":"latest","sourceType":"module","ecmaFeatures":{"jsx":true}}'
-        --rule '{"no-undef":"error","no-unused-vars":["error",{"args":"none","varsIgnorePattern":"^_"}]}'
+         npx --yes eslint@8.57.1 src --no-eslintrc
+         --env browser,es2022
+         --parser-options '{"ecmaVersion":"latest","sourceType":"module","ecmaFeatures":{"jsx":true}}'
+         --rule '{"no-undef":"error","no-unused-vars":["error",{"args":"none","varsIgnorePattern":"^_"}]}'
 
 deploy:
     name: Deploy to VPS
