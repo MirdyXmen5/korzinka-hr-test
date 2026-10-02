@@ -1,0 +1,89 @@
+name: CI
+
+on:
+	push:
+	pull_request:
+
+jobs:
+	backend-lint:
+		name: Backend (flake8)
+		runs-on: ubuntu-latest
+		steps:
+			- name: Check out repository
+				uses: actions/checkout@v4
+
+			- name: Set up Python
+				uses: actions/setup-python@v5
+				with:
+					python-version: "3.12"
+
+			- name: Install flake8
+				run: python -m pip install flake8
+
+			- name: Run flake8
+				run: flake8 .
+				working-directory: backend
+
+	frontend-lint:
+		name: Frontend (ESLint)
+		runs-on: ubuntu-latest
+		steps:
+			- name: Check out repository
+				uses: actions/checkout@v4
+
+			- name: Set up Node.js
+				uses: actions/setup-node@v4
+				with:
+					node-version: "20"
+
+			- name: Run ESLint
+				working-directory: frontend
+				run: >-
+					npx --yes eslint@8.57.1 src --no-eslintrc
+					--env browser,es2022
+					--parser-options '{"ecmaVersion":"latest","sourceType":"module","ecmaFeatures":{"jsx":true}}'
+					--rule '{"no-undef":"error","no-unused-vars":["error",{"args":"none","varsIgnorePattern":"^_"}]}'
+
+deploy:
+    name: Deploy to VPS
+    needs: [backend, frontend] # Ждем успешного завершения обеих проверок
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Авторизация в Docker Hub (убедись, что добавил секреты в GitHub!)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Сборка и пуш Backend
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+
+      # Сборка и пуш Frontend
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
+
+      # Подключение к серверу и перезапуск
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/ # УКАЖИ ТУТ РЕАЛЬНЫЙ ПУТЬ ДО ТВОЕГО DOCKER-COMPOSE НА СЕРВЕРЕ
+            docker compose pull
+            docker compose up -d --remove-orphans
