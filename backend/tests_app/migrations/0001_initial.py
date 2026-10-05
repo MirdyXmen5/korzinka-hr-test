@@ -8,65 +8,135 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Test',
+            name="Test",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('language', models.CharField(choices=[('ru', 'Русский'), ('kk', 'Қазақша')], max_length=2)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "language",
+                    models.CharField(
+                        choices=[("ru", "Русский"), ("kk", "Қазақша")],
+                        max_length=2,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('option_a', models.TextField()),
-                ('option_b', models.TextField()),
-                ('option_c', models.TextField()),
-                ('correct_answers', models.CharField(default='A', max_length=10)),
-                ('order', models.PositiveIntegerField(default=0)),
-                ('test', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='tests_app.test')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                ("option_a", models.TextField()),
+                ("option_b", models.TextField()),
+                ("option_c", models.TextField()),
+                (
+                    "correct_answers",
+                    models.CharField(default="A", max_length=10),
+                ),
+                ("order", models.PositiveIntegerField(default=0)),
+                (
+                    "test",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="questions",
+                        to="tests_app.test",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['order'],
+                "ordering": ["order"],
             },
         ),
         migrations.CreateModel(
-            name='TestResult',
+            name="TestResult",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('full_name', models.CharField(max_length=255)),
-                ('position', models.CharField(max_length=255)),
-                ('date', models.DateField(auto_now_add=True)),
-                ('timer_minutes', models.PositiveIntegerField(blank=True, null=True)),
-                ('correct_count', models.PositiveIntegerField(default=0)),
-                ('incorrect_count', models.PositiveIntegerField(default=0)),
-                ('total_questions', models.PositiveIntegerField(default=0)),
-                ('started_at', models.DateTimeField()),
-                ('finished_at', models.DateTimeField(auto_now_add=True)),
-                ('test', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='tests_app.test')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("full_name", models.CharField(max_length=255)),
+                ("position", models.CharField(max_length=255)),
+                ("date", models.DateField(auto_now_add=True)),
+                (
+                    "timer_minutes",
+                    models.PositiveIntegerField(blank=True, null=True),
+                ),
+                ("correct_count", models.PositiveIntegerField(default=0)),
+                ("incorrect_count", models.PositiveIntegerField(default=0)),
+                ("total_questions", models.PositiveIntegerField(default=0)),
+                ("started_at", models.DateTimeField()),
+                ("finished_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "test",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results",
+                        to="tests_app.test",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-finished_at'],
+                "ordering": ["-finished_at"],
             },
         ),
         migrations.CreateModel(
-            name='Answer',
+            name="Answer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('selected_answer', models.CharField(max_length=10)),
-                ('is_correct', models.BooleanField(default=False)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tests_app.question')),
-                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='tests_app.testresult')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("selected_answer", models.CharField(max_length=10)),
+                ("is_correct", models.BooleanField(default=False)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="tests_app.question",
+                    ),
+                ),
+                (
+                    "result",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="answers",
+                        to="tests_app.testresult",
+                    ),
+                ),
             ],
         ),
     ]
